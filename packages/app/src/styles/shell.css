@@ -52,6 +52,8 @@
   min-height: 0;
   overflow: auto;
   container: main / inline-size;
+  /* A faint morning haze at the top of the canvas. Themes without haze set it to transparent. */
+  background: linear-gradient(to bottom, var(--haze-canvas), transparent 360px) no-repeat, var(--bg);
 }
 
 .page {
@@ -155,13 +157,6 @@ html[data-resizing="row"] * {
   border-radius: var(--r-sm);
 }
 
-.brand-word {
-  font-size: 18px;
-  font-weight: 500;
-  font-stretch: 88%;
-  line-height: 1;
-}
-
 .nav-item,
 .nav-search {
   display: flex;
@@ -211,16 +206,17 @@ html[data-resizing="row"] * {
   color: var(--text);
 }
 
-.nav-item[aria-current="page"],
-.nav-item[aria-pressed="true"] {
-  background: var(--raised);
+/* The current page is a raised card in the rail, its icon in the accent: the one place the rail uses it. */
+.nav-item[aria-current="page"] {
+  background: var(--card);
   color: var(--text);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-small);
 }
 
-.nav-item[aria-current="page"] .nav-icon,
-.nav-item[aria-pressed="true"] .nav-icon {
-  color: var(--text);
+.nav-item[aria-current="page"] .nav-icon {
+  color: var(--accent-text);
 }
 
 .nav-search {
@@ -236,31 +232,6 @@ html[data-resizing="row"] * {
   gap: 2px;
 }
 
-.nav-foot {
-  margin-top: auto;
-}
-
-.nav-conn {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
-  padding: 12px 8px 4px;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-3);
-  border-top: 1px solid var(--line);
-  white-space: nowrap;
-}
-
-.nav-conn-state {
-  color: var(--text-2);
-}
-
-.nav-conn[data-conn="lost"] .nav-conn-state {
-  color: var(--neg);
-}
-
 /* Icons only */
 .shell[data-collapsed] .nav {
   align-items: center;
@@ -274,7 +245,7 @@ html[data-resizing="row"] * {
   padding: 8px 0 0;
 }
 
-.shell[data-collapsed] :is(.nav-label, .nav-count, .nav-keys, .brand-word, .nav-conn) {
+.shell[data-collapsed] :is(.nav-label, .nav-count, .nav-keys, .brand-word, .acct-who, .acct-chevron) {
   display: none;
 }
 
@@ -321,17 +292,6 @@ html[data-resizing="row"] * {
 
 .shell[data-nav="top"] .nav-foot {
   order: 3;
-}
-
-.shell[data-nav="top"] .nav-foot :is(.nav-keys, .nav-label, .nav-conn-host) {
-  display: none;
-}
-
-.shell[data-nav="top"] .nav-conn {
-  margin: 0 0 0 8px;
-  padding: 0 0 0 16px;
-  border-top: 0;
-  border-left: 1px solid var(--line);
 }
 
 /* ───────────── Dock ───────────── */
@@ -412,7 +372,7 @@ button.act-row:hover {
 }
 
 .act-glyph[data-tone="running"] .tension {
-  color: var(--accent);
+  color: var(--accent-line);
 }
 
 .act-title {
@@ -662,7 +622,7 @@ button.act-row:hover {
 }
 
 .rig-mini span[data-part="nav"] {
-  background: var(--accent);
+  background: var(--accent-line);
 }
 
 .rig-mini span[data-part="dock"] {
@@ -699,7 +659,7 @@ button.act-row:hover {
   justify-items: center;
   align-items: start;
   padding-top: 14vh;
-  background: rgb(0 0 0 / 0.45);
+  background: var(--scrim);
   animation: fade var(--t-fast) var(--ease);
 }
 
@@ -786,67 +746,273 @@ button.act-row:hover {
   opacity: 1;
 }
 
-/* ───────────── Boot ───────────── */
 
-.boot {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 12px;
-  height: 100dvh;
+/* ───────────── Account area ───────────── */
+
+.nav-foot {
+  margin-top: auto;
+  position: relative;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
 }
 
-.boot-brand {
+.acct {
+  position: relative;
+}
+
+.acct-btn {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px;
+  border-radius: var(--r-lg);
+  text-align: left;
+  transition: background-color var(--t-fast) var(--ease);
 }
 
-.boot-brand .brand-word {
-  font-size: 28px;
+.acct-btn:hover,
+.acct-btn[aria-expanded="true"] {
+  background: var(--hover);
 }
 
-.boot-state,
-.boot-hint {
+.acct-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.acct-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.acct-team {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
   color: var(--text-3);
 }
 
-/* The rig bar reads in two rows: what this is and how to leave, then the controls. */
-.rig-bar > .rig-group {
-  order: 3;
+.acct-chevron {
+  flex: none;
+  color: var(--text-3);
 }
 
-.rig-bar > .rig-intro,
-.rig-bar > .rig-intro + .rig-group {
-  order: 0;
+/* The menu opens toward the content: up from a side rail, down from a top bar. */
+.acct-menu {
+  position: absolute;
+  z-index: 35;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  min-width: 224px;
+  padding: 4px;
+  background: var(--card);
+  border-radius: var(--r-xl);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    var(--shadow-float);
+  transform-origin: bottom left;
+  animation: menu-up var(--t-mid) var(--ease);
 }
 
-.rig-bar > .rig-end {
-  order: 1;
+.shell[data-nav="right"] .acct-menu {
+  left: auto;
+  right: 0;
+  transform-origin: bottom right;
 }
 
-.rig-bar::after {
-  content: "";
-  order: 2;
-  flex-basis: 100%;
+.shell[data-nav="top"] .acct-menu {
+  top: calc(100% + 8px);
+  bottom: auto;
+  left: auto;
+  right: 0;
+  width: 280px;
+  transform-origin: top right;
+  animation-name: pop;
 }
 
-.shell[data-rig] .view {
-  padding-bottom: 264px;
+.shell[data-collapsed] .acct-menu {
+  left: calc(100% + 4px);
+  bottom: 0;
+  right: auto;
+  width: 264px;
 }
 
-/* While a region is being dragged the bar steps aside, so the edges can be read. */
-.rig-bar {
-  transition: opacity var(--t-fast) var(--ease);
+@keyframes menu-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
 }
 
-.shell:has(.zones) .rig-bar {
-  opacity: 0;
-  pointer-events: none;
+.acct-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
 }
 
-/* A bottom dock sits under the rig bar, so its tag rides the dock's top edge. */
-.shell[data-dock="bottom"] .dock .region-tag {
-  top: 8px;
-  transform: translate(-50%, 0);
+.acct-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+
+.acct-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px;
+  color: var(--text-2);
+  border-radius: max(4px, calc(var(--r-xl) - 4px));
+  transition:
+    background-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease);
+}
+
+.acct-item:hover,
+.acct-item:focus-visible {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.acct-item-label {
+  flex: 1;
+}
+
+.acct-item[data-tone="danger"]:hover {
+  color: var(--neg);
+}
+
+.acct-theme {
+  gap: 8px;
+  padding: 8px;
+}
+
+.acct-theme .seg {
+  width: 100%;
+}
+
+.acct-label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-3);
+}
+
+.shell[data-collapsed] .nav-foot {
+  width: 100%;
+}
+
+.shell[data-collapsed] .acct-btn {
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.shell[data-nav="top"] .nav-foot {
+  padding: 0 0 0 12px;
+  border-top: 0;
+  border-left: 1px solid var(--line);
+}
+
+.shell[data-nav="top"] .acct-btn {
+  min-height: 40px;
+  padding: 4px 8px 4px 4px;
+}
+
+.shell[data-nav="top"] .acct-who {
+  max-width: 160px;
+}
+
+.shell[data-nav="top"] .acct-team {
+  display: none;
+}
+
+/* ───────────── Offline ───────────── */
+
+.offline {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 8px var(--pad);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  animation: pop var(--t-mid) var(--ease);
+}
+
+/* ───────────── Dialog ───────────── */
+
+.dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.dialog-head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 16px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.dialog-head h2 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.dialog .shortcuts {
+  padding: 16px 24px 24px;
+}
+
+.shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.shortcuts h3 {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.shortcuts dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--line);
+}
+
+.shortcuts dd {
+  display: flex;
+  gap: 4px;
+}
+
+/* An icons-only rail is too narrow for the account menu, so it may spill over the page. */
+.shell[data-collapsed] .nav {
+  overflow: visible;
 }

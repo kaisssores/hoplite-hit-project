@@ -118,10 +118,10 @@ export function Segmented<T extends string>({
   label: string;
   size?: "sm" | "md";
 }) {
-  const index = Math.max(0, options.findIndex((option) => option.value === value));
-  const style = { "--seg-count": options.length, "--seg-index": index } as CSSProperties;
+  const index = options.findIndex((option) => option.value === value);
+  const style = { "--seg-count": options.length, "--seg-index": Math.max(0, index) } as CSSProperties;
   return (
-    <div className={`seg seg-${size}`} role="radiogroup" aria-label={label} style={style}>
+    <div className={`seg seg-${size}`} role="radiogroup" aria-label={label} style={style} data-empty={index === -1 || undefined}>
       <span className="seg-thumb" />
       {options.map((option) => (
         <button

@@ -265,10 +265,22 @@ export interface Usage {
   quota: { used: number; limit: number; resetsAt: number };
 }
 
+/* ───────────── Account ───────────── */
+
+/** The person using this server. The prototype has one account and no passwords. */
+export interface Account {
+  name: string;
+  email: string;
+  team: string;
+  createdAt: number;
+}
+
+export type AccountInput = Pick<Account, "name" | "email" | "team">;
+
 /* ───────────── Preferences: theme and layout ───────────── */
 
-export type ThemeId = "night-watch" | "chart-room" | "deep-water" | "signal";
-export const THEME_IDS: ThemeId[] = ["night-watch", "chart-room", "deep-water", "signal"];
+export type ThemeId = "haze" | "haze-night" | "night-watch" | "chart-room" | "deep-water" | "signal";
+export const THEME_IDS: ThemeId[] = ["haze", "haze-night", "night-watch", "chart-room", "deep-water", "signal"];
 
 export type CatalogColumn = "category" | "auth" | "version" | "status" | "latency" | "traffic";
 export const CATALOG_COLUMNS: CatalogColumn[] = ["category", "auth", "version", "status", "latency", "traffic"];
@@ -395,7 +407,7 @@ export const LAYOUT_PRESETS: { id: string; name: string; hint: string; layout: L
 ];
 
 export const DEFAULT_PREFERENCES: Preferences = {
-  theme: "night-watch",
+  theme: "haze",
   motion: "system",
   layout: DEFAULT_LAYOUT,
   saved: [],
@@ -430,7 +442,8 @@ export type ServerEvent =
   | { type: "session.removed"; properties: { id: string } }
   | { type: "exchange.updated"; properties: Exchange }
   | { type: "activity.created"; properties: Activity }
-  | { type: "preferences.updated"; properties: Preferences };
+  | { type: "preferences.updated"; properties: Preferences }
+  | { type: "account.updated"; properties: Account | null };
 
 export interface RouteDoc {
   method: Method;
@@ -464,4 +477,7 @@ export const ROUTES: RouteDoc[] = [
   { method: "GET", path: "/v1/usage", summary: "Traffic for a range: 24h, 7d or 30d", returns: "Usage" },
   { method: "GET", path: "/v1/preferences", summary: "Theme, motion and layout", returns: "Preferences" },
   { method: "PUT", path: "/v1/preferences", summary: "Patch theme, motion or layout", returns: "Preferences" },
+  { method: "GET", path: "/v1/account", summary: "The account on this server, or null before registration", returns: "Account | null" },
+  { method: "PUT", path: "/v1/account", summary: "Register, or update name, email and team", returns: "Account" },
+  { method: "DELETE", path: "/v1/account", summary: "Sign out and forget the account", returns: "{ ok: true }" },
 ];

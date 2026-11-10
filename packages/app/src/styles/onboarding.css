@@ -1,0 +1,195 @@
+/*
+ * Onboarding: one scene for the intro and registration. A horizon line runs
+ * across it, mist gathers where the line meets the mark, and the mark sits on
+ * the line. The scene is the only place the haze covers an area.
+ */
+
+.scene {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 48px 24px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.scene-mist {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(48% 28% at 50% 50%, var(--haze) 0%, transparent 72%),
+    radial-gradient(90% 40% at 50% 50%, var(--haze-canvas) 0%, transparent 80%);
+  animation: fade var(--t-scene) var(--ease) both;
+}
+
+.scene-horizon {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--line-strong) 20%, var(--line-strong) 80%, transparent);
+  transform-origin: center;
+  animation: horizon var(--t-scene) var(--ease) 120ms both;
+}
+
+@keyframes horizon {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.scene-foot {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ───────────── Intro ───────────── */
+
+.intro {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(560px, calc(100vw - 48px));
+  text-align: center;
+  /* The foot of the post (y 28 of 32 in the mark) stands on the horizon. */
+  transform: translate(-50%, -77px);
+}
+
+.intro-word {
+  margin-top: 20px;
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  animation: rise var(--t-slow) var(--ease) 700ms both;
+}
+
+.intro-status {
+  margin-top: 8px;
+  min-height: 20px;
+  color: var(--text-3);
+  transition: color var(--t-mid) var(--ease);
+  animation: fade var(--t-slow) var(--ease) 820ms both;
+}
+
+.intro-status[data-state="taut"] {
+  color: var(--accent-text);
+}
+
+.intro-status[data-state="snapped"] {
+  color: var(--neg);
+}
+
+.intro-hint {
+  margin-top: 8px;
+  color: var(--text-3);
+  animation: rise var(--t-mid) var(--ease) both;
+}
+
+/* ───────────── Registration ───────────── */
+
+.register {
+  z-index: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(440px, 100%);
+  padding: 32px;
+  background: var(--card);
+  border-radius: var(--r-xl);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-float);
+}
+
+.register-head {
+  margin-bottom: 20px;
+}
+
+.register-title {
+  margin-top: 24px;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.register-sub {
+  margin-top: 8px;
+  color: var(--text-2);
+}
+
+.reg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reg-field > label,
+.reg-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.reg-field .seg {
+  width: 100%;
+}
+
+.reg-error {
+  min-height: 20px;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--neg);
+}
+
+.register .form-error {
+  margin: 4px 0 0;
+}
+
+.register-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.register-foot .btn-ghost {
+  margin-left: -12px;
+}
+
+.register-submit {
+  min-width: 152px;
+}
+
+@media (max-width: 520px) {
+  .register {
+    padding: 24px 20px;
+  }
+
+  .register-foot {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .register-foot .btn-ghost {
+    margin-left: 0;
+  }
+}

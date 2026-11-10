@@ -16,9 +16,9 @@ const memory = { query: "", category: "All", sort: "catalog" as Sort };
 
 const COLUMN: Record<CatalogColumn, { label: string; width: string; align?: "right" }> = {
   category: { label: "Category", width: "96px" },
-  auth: { label: "Auth", width: "120px" },
+  auth: { label: "Auth", width: "112px" },
   version: { label: "Version", width: "144px" },
-  status: { label: "Status", width: "132px" },
+  status: { label: "Status", width: "124px" },
   latency: { label: "p50", width: "64px", align: "right" },
   traffic: { label: "Requests 24 h", width: "96px", align: "right" },
 };
@@ -113,7 +113,7 @@ export function Catalog() {
   ].filter(Boolean);
 
   const flip = (update: () => void) => void transition("flip", update);
-  const template = { "--cat-cols": ["minmax(200px, 1fr)", ...columns.map((column) => COLUMN[column].width)].join(" ") } as CSSProperties;
+  const template = { "--cat-cols": ["minmax(140px, 1fr)", ...columns.map((column) => COLUMN[column].width)].join(" ") } as CSSProperties;
 
   const onListKey = (event: React.KeyboardEvent) => {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;

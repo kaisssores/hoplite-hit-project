@@ -90,6 +90,7 @@ export function Sessions() {
           <h2 className="module-title">Requests in {current?.title ?? "this session"}</h2>
           <div className="module-meta num">{history.length}</div>
         </header>
+        <div className="module-body">
         {history.length === 0 ? (
           <Empty
             title="Nothing sent in this session"
@@ -147,6 +148,7 @@ export function Sessions() {
             </tbody>
           </table>
         )}
+        </div>
       </section>
     </div>
   );

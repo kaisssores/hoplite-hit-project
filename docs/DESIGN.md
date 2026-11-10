@@ -2,80 +2,113 @@
 
 The interface was directed and audited with the [unslop](../.claude/skills/unslop/SKILL.md) skill by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)), CC BY 4.0: a direction taken from the product, then spacing, color, icons, copy, type, layout, details, visuals and motion in that order, then a rendered check against its list of signs.
 
+Tokens, component states, breakpoints and contrast figures are in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). This document explains why they are what they are.
+
 ## Direction
 
 - **Product.** Tether is where developers find a company's user-facing APIs, get credentials, send test requests and watch health.
-- **Character.** Taut, exact, weatherproof.
-- **World.** Rigging and mooring: line under load, posts, tide tables. Surfaces stay neutral graphite, as an app that is looked at for hours should. The world shows in the accent (the orange of a safety line), in the charts and in the signature.
-- **Moments.** Two places get the richness. The request line in the playground, and the latency chart on an API page, drawn like a tide table with a hairline grid, mono labels and one line in the accent.
-- **Signature.** The tether line. State is tension: taut means connected and carrying load, slack means holding but sagging, snapped means nothing gets through.
+- **Character.** Taut, exact, calm. The first version was weatherproof and dark; this one is the same harbor on a bright morning.
+- **World.** Rigging and mooring, seen through morning haze over water: line under load, posts, tide tables, and the milky blue of sky meeting sea before the fog lifts. Surfaces are near-white with a cool tint, text is a deep harbor navy rather than black, and the accent is a soft sky blue.
+- **Moments.** Three places get the richness. The first-run intro, where the mark is built and pulls taut when the server answers; the request line in the playground; and the latency chart on an API page, drawn like a tide table.
+- **Signature.** The tether line. State is tension: taut means connected and carrying load, slack means holding but sagging, snapped means nothing gets through. Haze is the signature's light: it appears around a line only while it is carrying something.
 
 The signature is one idea used everywhere it is true and nowhere else:
 
 | Place | Taut | Slack | Snapped |
 | --- | --- | --- | --- |
-| The logo mark | Event stream open | Connecting | Server unreachable |
+| The logo mark | Event stream open (haze blooms once) | Connecting | Server unreachable |
+| The intro | Server answered, hand over to the app | Reaching the server | No answer, with the command that starts it |
 | Catalog status | Operational | Degraded | Outage (maintenance is a dashed line) |
 | The request line | A hop that carried the request | A hop not yet reached | The hop where the request was lost |
 | Activity dock | A request that got an answer | | A request that got none |
 
 There are no spinners and no status dots in the product. The line does that work.
 
+## Why soft blue, and how the haze is kept restrained
+
+A milky blue accent is pleasant to look at for hours, but pale blue is a weak text color and a weak status line. The palette therefore splits the accent into four roles instead of reusing one hex everywhere:
+
+- **Fill** (`#B7D1F3`): the primary button and selection. Dark navy ink sits on it at 9.7:1, so the button is soft without being washed out.
+- **Text** (`#285CA6`): links and accented labels, 6.6:1 on cards.
+- **Line** (`#5A8ED6`): the line in flight, focus rings, chart leads. Holds 3:1 against cards, the non-text minimum.
+- **Haze** (`#8DB4EC` at 32 percent): mist, never information.
+
+Haze is allowed in exactly four places, each tied to something live:
+
+1. Around the active stretch of the request line, and only that stretch.
+2. Behind the logo mark, as a single bloom when the event stream connects.
+3. Around keyboard focus, as a faint ring outside the solid outline.
+4. On the onboarding scene and as a 360px wash at the top of the canvas, the only places it covers an area.
+
+It is never on text, cards, buttons at rest, charts or hover states. Signal, the high-contrast theme, sets it to zero.
+
 ## Anti-slop decisions
 
-- **One accent, kept rare.** It marks what is live: the line in flight, the Send button that pulls it taut, the lead series in a chart, the keyboard focus ring, and the handles in rig mode. Primary buttons elsewhere use the text color as a fill.
-- **Neutral chrome.** One ramp per theme, three text roles, hairlines at 8 to 10 percent of the text color. Depth comes from surface steps on dark themes. No gradients, glows, glass or colored shadows.
-- **No stat-card dashboard.** The catalog is a typographic index with aligned mono columns. Usage leads with four figures set as numbers on a rule, one main chart, and ranked lists with thin bars beside it. Nothing has a sparkline.
-- **Type chosen for the character.** Instrument Sans has a width axis, so titles are set condensed (80 to 88 percent) and read as pulled tight; body text stays at full width. Geist Mono carries paths, tokens and figures, with tabular numerals. Weights are 400 and 500 only. Sentence case throughout, no tracked uppercase labels.
-- **Spacing on a 4px grid.** Rows are 36 and 48 (32 and 40 in compact). Nested radii subtract their padding.
-- **Copy says what happens.** No greetings, no exclamation marks, no hype. Comparisons name what they compare to. Errors say where the request was lost and offer the next step.
-- **JSON stays in the ramp.** Keys recede and values read first, instead of a rainbow highlighter competing with the line.
-- **Icons.** lucide at 16px with a 1.5 stroke, in the color of their text role.
-- **Plausible data.** Ten official APIs with real-shaped endpoints, scopes and changelogs. Health, usage and playground results agree with each other because they come from the same server state.
+- **One accent, kept rare.** It marks what is live or primary: the line in flight, the Send button, the lead series in a chart, focus and rig handles.
+- **Quiet chrome.** One cool ramp per theme, three text roles, hairlines at 9 percent of the text color. On Haze, content sits on white cards with a hairline and a 1px shadow over the tinted canvas; chrome (rail, dock) stays on the canvas. No gradient text, glass, colored shadows or glowing borders.
+- **No stat-card dashboard.** The catalog is a typographic index with aligned mono columns. Usage leads with four figures on a rule, one main chart and ranked lists.
+- **Type chosen for the character.** Instrument Sans with titles set condensed (80 to 88 percent width) so they read pulled tight; Geist Mono for paths, tokens and figures with tabular numerals. Weights 400 and 500 only. Sentence case, no tracked uppercase labels.
+- **Spacing on a 4px grid.** Rows are 36 and 48 (32 and 40 in compact). Nested radii subtract their padding. Haze themes use slightly rounder corners (10 to 20) than the classic set.
+- **Copy says what happens.** No greetings, exclamation marks or hype. Errors say where the request was lost and what to try. Registration says where the data lives.
+- **Icons.** lucide at 16px, 1.5 stroke, in the color of their text role.
+
+## First run
+
+1. **Intro.** The T-shaped mark draws in over 1.1 s while the client reaches the server. The line pulls taut only when the event stream is actually open, holds for half a second, then hands over. If the server is down, the line stays fallen and the page says how to start it, then continues on its own once it can connect.
+2. **Registration.** Name, email and an optional team, plus a light, dark or system appearance choice that is applied live. Fields validate on blur and on submit with inline messages tied to the field. "Fill in demo details" exists for walkthroughs. The account is local to the prototype server: there is no password and no identity provider.
+3. **Into the app.** The registration card recedes, the mark travels to its place at the top of the rail, and the shell rises in reading order. Returning users skip registration.
+
+## Account and settings
+
+The account lives at the bottom of the rail: avatar initials, name and team, collapsing to the avatar when the rail is icons-only. It opens a menu with Settings, Keyboard shortcuts, Layout (rig mode), a three-way theme switch and Sign out. The menu is fully keyboard navigable (arrows, Home, End, Esc) and returns focus to its trigger.
+
+Settings replaces the old Workbench page (`/workbench` still routes there). Sections: Profile, Appearance (theme gallery grouped Haze and Classic, follow-system switch, motion, density), Layout (rail and dock position, icons-only rail, playground split, saved rigs), Shortcuts, and Server (adapters and the token reference). Every setting is a server-side preference, so it survives reloads and every connected window follows it.
 
 ## Animation
 
-Motion has one easing curve, `cubic-bezier(0.22, 1, 0.36, 1)`, three durations (140, 200 and 380 ms), and never animates layout properties: it moves transforms, opacity, clip paths and SVG path data. Nothing loops. Each animation is there to explain something.
+Motion has one easing curve, `cubic-bezier(0.22, 1, 0.36, 1)`, three durations (140, 200 and 380 ms) plus a 640 ms scene duration used only by onboarding, and never animates layout properties.
 
 | Motion | What it explains |
 | --- | --- |
-| The page slides left going from catalog to API to playground, right coming back, and rises on lateral moves | Where you are in browse, inspect, test |
-| An API's name travels from its catalog row to the page title and back | It is the same object |
-| Rows and modules glide when a list is filtered, sorted, expanded or reordered | What moved, as opposed to what changed |
+| The mark draws, then pulls taut with one haze bloom | The client reached the server |
+| Registration recedes, the mark travels to the rail and the shell rises in | You are in, and it is the same line |
+| The page slides left going from catalog to API to playground, right coming back | Where you are in browse, inspect, test |
+| An API's name travels from its catalog row to the page title | It is the same object |
+| Rows and modules glide when filtered, sorted or reordered | What moved, as opposed to what changed |
 | Rail, page and dock morph when the layout changes | The same three regions, rearranged |
-| The request line: idle strands sag, the active hop pulls taut in the accent with a knot riding it, finished hops stay taut, the response returns along the bottom strand | The request is asynchronous and happens on the server, hop by hop |
-| The line snaps at the failing hop | No response came back, and where it was lost |
-| The previous response dims while a new request is in flight, then the new one rises in | The answer on screen is stale, then fresh |
-| Copy swaps to a check and "Copied" in place; Send rolls to "Sending" | Feedback where the action was taken |
-| A new secret arrives character by character | It is shown once |
+| The request line: the active hop pulls taut with haze around it, finished hops stay taut, the response returns along the bottom strand | The request happens on the server, hop by hop |
+| The line snaps at the failing hop | Where the request was lost |
 | A new theme spreads from the swatch that was clicked | Cause and effect |
-| A new activity row rises in at the top of the dock | It just arrived over the stream |
+| A new activity row rises at the top of the dock | It just arrived over the stream |
 
-The hop events can arrive within a few milliseconds of each other. The line plays them back one stretch at a time, never faster than 160 ms each, so a fast request is still seen travelling. The timings shown are always the server's.
+Hop events can arrive milliseconds apart; the line plays them back no faster than 160 ms per stretch, but the timings shown are always the server's. Structural changes run through one helper, `transition(kind, update)`, with kinds `route`, `flip`, `shell`, `theme` and `stage`. The motion preference (system, full, reduced) is saved; reduced skips view transitions, shortens the intro and collapses durations.
 
-Structural changes run as view transitions through one helper, `transition(kind, update)`. It tags the document with the kind (`route`, `flip`, `shell` or `theme`) and CSS decides which elements keep their identity. Browsers without view transitions get the same state change without the travel. The motion preference (system, full, reduced) is a saved setting; reduced skips transitions and collapses durations.
+## Connection loss
+
+The event stream sends a heartbeat. If none arrives for a while, the SDK closes and reopens the stream rather than trusting an `EventSource` that a proxy is holding open. The logo goes slack while reconnecting and snaps if the server stays unreachable; an inline banner at the top of the page says the line is lost and that it will reconnect on its own.
 
 ## Customization: rigging
 
-The product's own structure is editable from inside it. Rig mode (`Ctrl/⌘ + .`) shows the frame of every region and module:
+Rig mode (`Ctrl/⌘ + .`, or Layout in the account menu) shows the frame of every region and module:
 
-- **Regions.** Drag the rail to the left, top or right edge and the dock to the right or bottom, or turn the dock off. The rail collapses to icons. Splitters resize the rail, the dock and the playground split at any time.
-- **Modules.** API pages and the usage page are made of modules. Drag them to reorder, or hide them. Hidden modules stay visible in rig mode so they can be brought back.
+- **Regions.** Drag the rail to the left, top or right edge and the dock to the right or bottom, or turn the dock off. Splitters resize the rail, dock and playground split.
+- **Modules.** API and usage pages are made of modules that can be reordered or hidden.
 - **Catalog.** Choose columns and group by category.
-- **Density and playground split.** Regular or compact; request and response side by side or stacked.
-- **Rigs.** Three built in (Browse, Bench, Watch). Any arrangement can be saved under a name and applied later.
+- **Rigs.** Three built in (Browse, Bench, Watch); any arrangement can be saved under a name.
 
-A layout is one object in the contract, stored in the server's preferences. Applying a rig is a single write, and every connected window follows it with the same morph.
+A layout is one object in the contract, stored in the server's preferences.
 
 ## Theming
 
-A theme is a complete token set, not a recolor. `theme/themes.ts` defines each one, and `themeVariables` turns it into the CSS variables that every component reads: four surfaces, three text roles, hairlines, the accent with its ink and text variants, three semantic colors, a five-step corner scale, the stroke weight of the line and charts, and the floating shadow.
+A theme is a complete token set, not a recolor: surfaces, text roles, the four accent roles, semantics, haze, corner scale, line weight and elevation move together.
 
-| Theme | Mode | What moves besides color |
-| --- | --- | --- |
-| Night watch | Dark | The default: graphite, safety-line orange |
-| Chart room | Light | Paper surfaces, a darker accent that holds 4.5:1 as text and as a fill, soft shadows instead of surface steps |
-| Deep water | Dark | Ink ramp, beacon green accent, softer corners |
-| Signal | Dark | High contrast, hairlines three times stronger, square corners, a 2px line |
+| Theme | Family | Mode | Character |
+| --- | --- | --- | --- |
+| Haze | Haze | Light | The default. Milky blue on cool white, navy text, haze on |
+| Haze night | Haze | Dark | Harbor lights in fog: deep blue-navy, the same sky blue as fill and text |
+| Night watch | Classic | Dark | The original graphite and safety-line orange |
+| Chart room | Classic | Light | Chart paper, burnt-orange ink |
+| Deep water | Classic | Dark | Ink blue-black, beacon green |
+| Signal | Classic | Dark | High contrast, square corners, a 2px line, no haze |
 
-"Follow the system" pairs Night watch and Chart room with the OS setting. The Workbench shows every token of the current theme with its live value, drawn using the token itself.
+"Follow the system" pairs Haze and Haze night with the OS setting.

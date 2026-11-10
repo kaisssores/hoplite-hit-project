@@ -1,7 +1,7 @@
 import { CornerDownLeft, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { THEMES } from "../theme/themes";
-import { compose, go, newSession, setTheme } from "../state/sync";
+import { compose, go, newSession, recents, setTheme, signOut } from "../state/sync";
 import { store, useStore } from "../state/store";
 import { ICON, Keycap, MethodTag } from "../ui/primitives";
 import { toggleRig } from "./Rig";
@@ -32,7 +32,7 @@ export function Palette() {
         ["keys", "Keys"],
         ["usage", "Usage"],
         ["sessions", "Sessions"],
-        ["workbench", "Workbench"],
+        ["settings", "Settings"],
       ] as const
     ).map(([name, label]) => ({
       id: `page-${name}`,
@@ -71,6 +71,8 @@ export function Palette() {
       { id: "register", group: "Actions", label: "Register an API", text: "register api add", run: () => store.set({ sheet: { type: "register" }, palette: false }) },
       { id: "new-session", group: "Actions", label: "New session", text: "new session start", run: () => void newSession() },
       { id: "rig", group: "Actions", label: "Rig layout", text: "rig layout customize arrange", run: () => toggleRig(true) },
+      { id: "shortcuts", group: "Actions", label: "Keyboard shortcuts", text: "keyboard shortcuts keys help", run: () => store.set({ shortcuts: true }) },
+      { id: "sign-out", group: "Actions", label: "Sign out", text: "sign out log out account", run: () => void signOut() },
       ...THEMES.map((theme) => ({
         id: `theme-${theme.id}`,
         group: "Theme",
@@ -85,7 +87,15 @@ export function Palette() {
 
   const results = useMemo(() => {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-    if (!words.length) return commands.filter((command) => command.group !== "Try an endpoint" && command.group !== "Theme");
+    if (!words.length) {
+      // Before anything is typed: where you were last, then the places and actions.
+      const byId = new Map(commands.map((command) => [command.id, command]));
+      const recent = recents()
+        .map((entry) => byId.get(entry.type === "api" ? `api-${entry.apiId}` : `ep-${entry.apiId}-${entry.endpointId}`))
+        .filter((command): command is Command => !!command)
+        .map((command) => ({ ...command, id: `recent-${command.id}`, group: "Recent" }));
+      return [...recent, ...commands.filter((command) => command.group === "Go to" || command.group === "Actions")];
+    }
     return commands.filter((command) => words.every((word) => command.text.includes(word))).slice(0, 40);
   }, [commands, query]);
 

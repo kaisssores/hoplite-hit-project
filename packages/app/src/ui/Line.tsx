@@ -38,7 +38,3 @@ export function TensionGlyph({ tension, className = "" }: { tension: Tension; cl
   );
 }
 
-/** The logo mark. It is the same line, and it shows the live connection to the server. */
-export function Mark({ conn }: { conn: ConnectionState }) {
-  return <TensionGlyph tension={tensionOfConnection(conn)} className="mark" />;
-}

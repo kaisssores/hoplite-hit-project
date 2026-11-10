@@ -15,9 +15,9 @@
 }
 
 .view-title {
-  font-size: 32px;
+  font-size: 30px;
   line-height: 36px;
-  font-stretch: 82%;
+  letter-spacing: -0.015em;
 }
 
 .view-meta {
@@ -52,9 +52,9 @@
   height: 36px;
   padding: 0 8px 0 12px;
   color: var(--text-3);
-  background: var(--raised);
+  background: var(--field);
   border-radius: var(--r-md);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
   transition: box-shadow var(--t-fast) var(--ease);
 }
 
@@ -81,7 +81,7 @@
 .cat-row {
   display: grid;
   grid-template-columns: var(--cat-cols);
-  column-gap: 20px;
+  column-gap: 16px;
   align-items: center;
   padding: 0 12px;
 }
@@ -219,10 +219,9 @@
 }
 
 .api-title {
-  font-size: 44px;
-  line-height: 48px;
+  font-size: 40px;
+  line-height: 44px;
   letter-spacing: -0.02em;
-  font-stretch: 80%;
 }
 
 .api-version {
@@ -311,7 +310,6 @@
 .module-title {
   font-size: 20px;
   line-height: 28px;
-  font-stretch: 86%;
 }
 
 .module-meta {
@@ -417,8 +415,6 @@
 .figures-row {
   display: flex;
   margin-bottom: 8px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
 }
 
 .figures-row > div {
@@ -430,7 +426,7 @@
 }
 
 .figures-row > div:first-child {
-  padding-left: 0;
+  padding-left: 24px;
   border-top: 0;
 }
 
@@ -917,7 +913,7 @@
   content: "";
   width: 12px;
   height: 2px;
-  background: var(--accent);
+  background: var(--accent-line);
 }
 
 .legend span[data-tone="quiet"]::before {
@@ -1049,11 +1045,11 @@
 }
 
 .view-sessions > .module,
-.view-workbench > .module {
+.view-settings > .module {
   margin-top: var(--gap);
 }
 
-.view-workbench > .module:first-of-type {
+.view-settings > .module:first-of-type {
   margin-top: 8px;
 }
 
@@ -1099,7 +1095,7 @@
 
 .themes {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
   gap: 16px;
 }
 
@@ -1232,7 +1228,7 @@
 
 .token-stroke {
   height: var(--stroke);
-  background: var(--accent);
+  background: var(--accent-line);
   border-radius: 0;
   box-shadow: none;
 }
@@ -1321,10 +1317,6 @@
   .view-usage .module[data-module] {
     grid-column: auto;
   }
-
-  .themes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @container main (max-width: 1000px) {
@@ -1375,5 +1367,228 @@
   .keys-head > :is(:nth-child(5), :nth-child(6)),
   .keyrow-main > :is(.keyrow-used, .num) {
     display: none;
+  }
+}
+
+/* Phone widths: the catalog keeps the name and its status line, and the toolbar stacks. */
+@container main (max-width: 560px) {
+  .toolbar :is(.search, .seg) {
+    flex: 1 1 100%;
+    width: auto;
+    margin-left: 0;
+  }
+
+  .cat-head,
+  .cat-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .cat-head > span:not(:first-child),
+  .cat-row > .cat-cell:not(.cat-status) {
+    display: none;
+  }
+}
+
+/* ───────────── Surfaces ─────────────
+   Content sits on white cards over the hazed canvas; chrome stays on the canvas. */
+
+.cat,
+.module-body,
+.keys,
+.sessions,
+.figures-row,
+.settings-card {
+  background: var(--card);
+  border-radius: var(--r-lg);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-small);
+}
+
+.cat,
+.keys,
+.sessions {
+  padding: 0 8px;
+}
+
+.module-body {
+  padding: 20px 24px;
+}
+
+.module-body > :is(.eps, .incidents):first-child,
+.sessions {
+  border-top: 0;
+}
+
+.module-body > .eps,
+.module-body > .incidents,
+.module-body > .changelog {
+  margin: -20px -24px;
+  padding: 0 8px;
+}
+
+:is(.cat, .keys, .sessions, .eps, .incidents) > :last-child,
+.cat .cat-group:last-child > .cat-row:last-child,
+.keys li:last-child,
+.changelog li:last-child,
+.module-body .history tr:last-child td {
+  border-bottom: 0;
+}
+
+.changelog li:first-child {
+  border-top: 0;
+}
+
+.changelog li {
+  padding: 12px 16px;
+}
+
+.module-body > .history {
+  margin: -8px 0;
+}
+
+/* ───────────── Settings ───────────── */
+
+.settings {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-link {
+  height: 36px;
+  padding: 0 12px;
+  color: var(--text-2);
+  border-radius: var(--r-md);
+  transition:
+    background-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease);
+}
+
+.settings-link:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.settings-link[aria-current="true"] {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+.settings-section {
+  scroll-margin-top: 24px;
+}
+
+.settings-section + .settings-section {
+  margin-top: 48px;
+}
+
+.settings-section-head {
+  margin-bottom: 16px;
+}
+
+.settings-section-head .muted {
+  margin-top: 4px;
+}
+
+.settings-card {
+  padding: 24px;
+}
+
+.settings-card > .setting:first-child,
+.setting-first {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.setting-wrap {
+  flex-wrap: wrap;
+}
+
+.settings-card .sub-title:first-child {
+  margin-top: 0;
+}
+
+.settings-card .sub-title {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.settings-card .tokens {
+  margin-top: 24px;
+}
+
+.disclose[aria-expanded="true"] .ep-chevron {
+  transform: rotate(90deg);
+}
+
+.rigs li[data-current] .rig-name {
+  color: var(--accent-text);
+}
+
+.rig-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--accent-text);
+}
+
+.profile-id {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profile-name {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+.settings-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+@container main (max-width: 860px) {
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .settings-fields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -179,11 +179,17 @@ export function RequestLine({ paced, api, adapterLabel }: { paced: Paced; api: A
             </text>
           ))}
           {strand(xs[3]!, xs[0]!, BOTTOM, back, 9).map((d, half) => (
-            <path key={half} className="strand" data-state={back} style={{ d: `path("${d}")` }} />
+            <g key={half}>
+              <path className="strand-haze" data-state={back} style={{ d: `path("${d}")` }} />
+              <path className="strand" data-state={back} style={{ d: `path("${d}")` }} />
+            </g>
           ))}
           {OUT.map((hop, index) =>
             strand(xs[index]!, xs[index + 1]!, TOP, states[index]!, 8).map((d, half) => (
-              <path key={`${hop}-${half}`} className="strand" data-state={states[index]} style={{ d: `path("${d}")` }} />
+              <g key={`${hop}-${half}`}>
+                <path className="strand-haze" data-state={states[index]} style={{ d: `path("${d}")` }} />
+                <path className="strand" data-state={states[index]} style={{ d: `path("${d}")` }} />
+              </g>
             )),
           )}
           {xs.map((x, index) => (

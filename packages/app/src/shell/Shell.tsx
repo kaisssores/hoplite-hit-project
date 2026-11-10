@@ -2,19 +2,21 @@ import { useEffect, type CSSProperties } from "react";
 import { commitLayout, go, previewLayout } from "../state/sync";
 import { routePath, store, useStore, type Route } from "../state/store";
 import { isTyping, useMedia } from "../ui/hooks";
-import { Mark } from "../ui/Line";
+import { TensionGlyph } from "../ui/Line";
 import { ApiDetail } from "../views/ApiDetail";
 import { Catalog } from "../views/Catalog";
 import { Keys, KeySheet } from "../views/Keys";
 import { Playground } from "../views/Playground";
 import { RegisterSheet } from "../views/Register";
 import { Sessions } from "../views/Sessions";
+import { Settings } from "../views/Settings";
 import { Usage } from "../views/Usage";
-import { Workbench } from "../views/Workbench";
 import { Dock } from "./Dock";
 import { Nav } from "./Nav";
+import { Onboarding } from "./Onboarding";
 import { Palette } from "./Palette";
 import { DropZones, RigBar, shellGrid, toggleRig } from "./Rig";
+import { ShortcutsDialog } from "./Shortcuts";
 
 function View({ route }: { route: Route }) {
   switch (route.name) {
@@ -30,8 +32,8 @@ function View({ route }: { route: Route }) {
       return <Usage />;
     case "sessions":
       return <Sessions />;
-    case "workbench":
-      return <Workbench />;
+    case "settings":
+      return <Settings section={route.section} />;
   }
 }
 
@@ -63,26 +65,70 @@ function Splitter({ target }: { target: "nav" | "dock" }) {
   return <div className="splitter" data-target={target} role="separator" aria-label={`Resize ${target === "nav" ? "rail" : "dock"}`} onPointerDown={onDown} />;
 }
 
-function Boot() {
+/** Shown only while the event stream is down. What is on screen may be stale until it returns. */
+function Offline() {
   const conn = useStore((state) => state.conn);
+  if (conn === "open") return null;
   return (
-    <div className="boot">
-      <div className="boot-brand">
-        <Mark conn={conn} />
-        <span className="brand-word">Tether</span>
-      </div>
-      <p className="boot-state">{conn === "lost" ? "No answer from the server yet, retrying" : "Reaching the server"}</p>
-      {conn === "lost" && (
-        <p className="boot-hint">
-          Start both with <code className="mono">npm run dev</code>
-        </p>
-      )}
+    <div className="offline" role="status">
+      <TensionGlyph tension={conn === "lost" ? "snapped" : "slack"} />
+      {conn === "lost" ? "Line to the server lost. What you see may be out of date; reconnecting" : "Reconnecting to the server"}
     </div>
   );
 }
 
+const GO_KEYS: Record<string, Route> = {
+  c: { name: "catalog" },
+  p: { name: "playground" },
+  k: { name: "keys" },
+  u: { name: "usage" },
+  s: { name: "sessions" },
+};
+
+function useShortcuts() {
+  useEffect(() => {
+    let pendingGo = 0;
+    const onKey = (event: KeyboardEvent) => {
+      const state = store.get();
+      if (state.stage !== "app") return;
+      const mod = event.metaKey || event.ctrlKey;
+      const key = event.key.toLowerCase();
+      if (mod && key === "k") {
+        event.preventDefault();
+        store.set({ palette: !state.palette, shortcuts: false });
+      } else if (mod && key === ".") {
+        event.preventDefault();
+        toggleRig();
+      } else if (mod && key === ",") {
+        event.preventDefault();
+        go({ name: "settings" });
+      } else if (event.key === "Escape" && state.rig && !state.palette && !state.sheet && !state.shortcuts) {
+        toggleRig(false);
+      } else if (event.key === "Escape" && state.shortcuts) {
+        store.set({ shortcuts: false });
+      } else if (mod || event.altKey || isTyping(event.target) || state.palette || state.sheet) {
+        return;
+      } else if (event.key === "?") {
+        event.preventDefault();
+        store.set({ shortcuts: !state.shortcuts });
+      } else if (event.key === "/" && state.route.name !== "catalog") {
+        event.preventDefault();
+        store.set({ palette: true });
+      } else if (pendingGo > performance.now() && GO_KEYS[key]) {
+        event.preventDefault();
+        pendingGo = 0;
+        go(GO_KEYS[key]!);
+      } else if (key === "g") {
+        pendingGo = performance.now() + 1000;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+}
+
 export function Shell() {
-  const phase = useStore((state) => state.phase);
+  const stage = useStore((state) => state.stage);
   const route = useStore((state) => state.route);
   const saved = useStore((state) => state.prefs.layout);
   // A narrow window keeps the saved layout but shows it with the rail as icons and no dock.
@@ -90,29 +136,11 @@ export function Shell() {
   const layout = narrow ? { ...saved, dock: "hidden" as const, navCollapsed: true } : saved;
   const rig = useStore((state) => state.rig);
   const palette = useStore((state) => state.palette);
+  const shortcuts = useStore((state) => state.shortcuts);
   const sheet = useStore((state) => state.sheet);
+  useShortcuts();
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const mod = event.metaKey || event.ctrlKey;
-      if (mod && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        store.set({ palette: !store.get().palette });
-      } else if (mod && event.key === ".") {
-        event.preventDefault();
-        toggleRig();
-      } else if (event.key === "Escape" && store.get().rig && !store.get().palette && !store.get().sheet) {
-        toggleRig(false);
-      } else if (event.key === "/" && !isTyping(event.target) && store.get().route.name !== "catalog") {
-        event.preventDefault();
-        store.set({ palette: true });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  if (phase === "booting") return <Boot />;
+  if (stage !== "app") return <Onboarding />;
 
   const collapsed = layout.navCollapsed && layout.nav !== "top";
   return (
@@ -125,10 +153,11 @@ export function Shell() {
       style={shellGrid(layout) as CSSProperties}
     >
       <div className="region region-nav">
-        <Nav />
+        <Nav collapsed={collapsed} />
         {layout.nav !== "top" && !collapsed && <Splitter target="nav" />}
       </div>
       <main className="main" id="main" data-route={route.name}>
+        <Offline />
         <div className="page" key={routePath(route)} data-route={route.name}>
           <View route={route} />
         </div>
@@ -142,6 +171,7 @@ export function Shell() {
       {rig && <RigBar />}
       <DropZones />
       {palette && <Palette />}
+      {shortcuts && <ShortcutsDialog />}
       {sheet?.type === "key" && <KeySheet apiId={sheet.apiId} onClose={() => store.set({ sheet: null })} />}
       {sheet?.type === "register" && (
         <RegisterSheet

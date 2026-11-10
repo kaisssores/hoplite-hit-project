@@ -9,8 +9,9 @@ import { flushSync } from "react-dom";
  *   flip   — rows and modules glide to their new place
  *   shell  — rail, page and dock morph to the new arrangement
  *   theme  — the new theme spreads from where it was picked
+ *   stage  — intro, registration and the product hand over; the logo travels between them
  */
-export type TransitionKind = "route" | "flip" | "shell" | "theme";
+export type TransitionKind = "route" | "flip" | "shell" | "theme" | "stage";
 
 interface ViewTransitionLike {
   finished: Promise<void>;

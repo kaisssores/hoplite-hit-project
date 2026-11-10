@@ -5,6 +5,8 @@
  */
 import {
   API_PREFIX,
+  type Account,
+  type AccountInput,
   type Activity,
   type Api,
   type ApiHealth,
@@ -47,6 +49,8 @@ export interface TetherOptions {
 }
 
 export type ConnectionState = "connecting" | "open" | "lost";
+
+const HEARTBEAT_TIMEOUT_MS = 35_000;
 
 export interface Subscription {
   close(): void;
@@ -112,6 +116,12 @@ export function createTether(options: TetherOptions = {}) {
     usage: {
       get: (range: UsageRange) => call<Usage>("GET", `/usage?range=${range}`),
     },
+    account: {
+      get: () => call<Account | null>("GET", "/account"),
+      /** Registers on first call, updates afterwards. */
+      save: (input: AccountInput) => call<Account>("PUT", "/account", input),
+      signOut: () => call<{ ok: true }>("DELETE", "/account"),
+    },
     preferences: {
       get: () => call<Preferences>("GET", "/preferences"),
       update: (patch: PreferencesPatch) => call<Preferences>("PUT", "/preferences", patch),
@@ -122,10 +132,16 @@ export function createTether(options: TetherOptions = {}) {
         let source: EventSource | null = null;
         let retry: ReturnType<typeof setTimeout> | undefined;
         let closed = false;
+        let lastSeen = Date.now();
         const open = () => {
+          lastSeen = Date.now();
           source = new EventSource(base + "/event");
-          source.onopen = () => onState?.("open");
+          source.onopen = () => {
+            lastSeen = Date.now();
+            onState?.("open");
+          };
           source.onmessage = (message) => {
+            lastSeen = Date.now();
             const event = safeParse(message.data) as ServerEvent | null;
             if (event && typeof event.type === "string") onEvent(event);
           };
@@ -136,12 +152,21 @@ export function createTether(options: TetherOptions = {}) {
             if (!closed && source?.readyState === EventSource.CLOSED) retry = setTimeout(open, 1500);
           };
         };
+        // A proxy can keep a dead stream open. The server sends a heartbeat every 15 s, so silence means the line is gone.
+        const watchdog = setInterval(() => {
+          if (closed || Date.now() - lastSeen < HEARTBEAT_TIMEOUT_MS) return;
+          onState?.("lost");
+          source?.close();
+          clearTimeout(retry);
+          open();
+        }, 5000);
         onState?.("connecting");
         open();
         return {
           close() {
             closed = true;
             clearTimeout(retry);
+            clearInterval(watchdog);
             source?.close();
           },
         };
