@@ -1,0 +1,852 @@
+/* ───────────── Shell ───────────── */
+
+.shell {
+  position: relative;
+  display: grid;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.region {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-deep);
+}
+
+.region-nav {
+  grid-area: nav;
+}
+
+.region-dock {
+  grid-area: dock;
+}
+
+.shell[data-nav="left"] .region-nav {
+  box-shadow: 1px 0 0 var(--line);
+}
+
+.shell[data-nav="right"] .region-nav {
+  box-shadow: -1px 0 0 var(--line);
+}
+
+.shell[data-nav="top"] .region-nav {
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.shell[data-dock="right"] .region-dock {
+  box-shadow: -1px 0 0 var(--line);
+}
+
+.shell[data-dock="bottom"] .region-dock {
+  box-shadow: 0 -1px 0 var(--line);
+}
+
+.main {
+  grid-area: main;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  container: main / inline-size;
+}
+
+.page {
+  min-height: 100%;
+}
+
+.page[data-route="playground"] {
+  height: 100%;
+}
+
+/* ───────────── Splitters ───────────── */
+
+.splitter {
+  position: absolute;
+  z-index: 5;
+  touch-action: none;
+}
+
+.splitter::after {
+  content: "";
+  position: absolute;
+  inset: 0 3px;
+  background: var(--text-3);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease);
+}
+
+.splitter:hover::after,
+html[data-resizing] .splitter:active::after {
+  opacity: 1;
+}
+
+.region .splitter {
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+}
+
+.shell[data-nav="left"] .region-nav .splitter {
+  right: -4px;
+}
+
+.shell[data-nav="right"] .region-nav .splitter,
+.shell[data-dock="right"] .region-dock .splitter {
+  left: -4px;
+}
+
+.shell[data-dock="bottom"] .region-dock .splitter {
+  top: -4px;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 8px;
+  cursor: row-resize;
+}
+
+.shell[data-dock="bottom"] .region-dock .splitter::after {
+  inset: 3px 0;
+}
+
+html[data-resizing] {
+  user-select: none;
+}
+
+html[data-resizing="col"] * {
+  cursor: col-resize !important;
+}
+
+html[data-resizing="row"] * {
+  cursor: row-resize !important;
+}
+
+/* ───────────── Rail ───────────── */
+
+.nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  margin-bottom: 8px;
+  padding: 0 4px 0 8px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--r-sm);
+}
+
+.brand-word {
+  font-size: 18px;
+  font-weight: 500;
+  font-stretch: 88%;
+  line-height: 1;
+}
+
+.nav-item,
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: var(--row);
+  padding: 0 8px;
+  flex: none;
+  color: var(--text-2);
+  border-radius: var(--r-md);
+  transition:
+    background-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease);
+}
+
+.nav-icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  flex: none;
+  color: var(--text-3);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-count {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.nav-keys {
+  display: flex;
+  gap: 2px;
+}
+
+.nav-item:hover,
+.nav-search:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.nav-item[aria-current="page"],
+.nav-item[aria-pressed="true"] {
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.nav-item[aria-current="page"] .nav-icon,
+.nav-item[aria-pressed="true"] .nav-icon {
+  color: var(--text);
+}
+
+.nav-search {
+  margin-bottom: 12px;
+  color: var(--text-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.nav-items,
+.nav-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-foot {
+  margin-top: auto;
+}
+
+.nav-conn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 12px 8px 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-3);
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.nav-conn-state {
+  color: var(--text-2);
+}
+
+.nav-conn[data-conn="lost"] .nav-conn-state {
+  color: var(--neg);
+}
+
+/* Icons only */
+.shell[data-collapsed] .nav {
+  align-items: center;
+  padding: 12px 8px;
+}
+
+.shell[data-collapsed] .nav-brand {
+  flex-direction: column;
+  height: auto;
+  gap: 8px;
+  padding: 8px 0 0;
+}
+
+.shell[data-collapsed] :is(.nav-label, .nav-count, .nav-keys, .brand-word, .nav-conn) {
+  display: none;
+}
+
+.shell[data-collapsed] :is(.nav-item, .nav-search) {
+  justify-content: center;
+  width: 36px;
+  padding: 0;
+}
+
+.shell[data-collapsed] :is(.nav-items, .nav-foot) {
+  align-items: center;
+}
+
+/* Top bar */
+.shell[data-nav="top"] .nav {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px;
+}
+
+.shell[data-nav="top"] .nav-brand {
+  height: auto;
+  margin: 0 16px 0 0;
+  padding: 0;
+}
+
+.shell[data-nav="top"] :is(.nav-items, .nav-foot) {
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+}
+
+.shell[data-nav="top"] .nav-item {
+  width: auto;
+  padding: 0 12px;
+}
+
+.shell[data-nav="top"] .nav-search {
+  order: 2;
+  width: 200px;
+  margin: 0 8px 0 auto;
+}
+
+.shell[data-nav="top"] .nav-foot {
+  order: 3;
+}
+
+.shell[data-nav="top"] .nav-foot :is(.nav-keys, .nav-label, .nav-conn-host) {
+  display: none;
+}
+
+.shell[data-nav="top"] .nav-conn {
+  margin: 0 0 0 8px;
+  padding: 0 0 0 16px;
+  border-top: 0;
+  border-left: 1px solid var(--line);
+}
+
+/* ───────────── Dock ───────────── */
+
+.dock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dock-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 12px 0 8px;
+  flex: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.shell[data-dock="bottom"] .dock-head {
+  height: 44px;
+}
+
+.dock-session {
+  flex: 1;
+}
+
+.dock-session .select-btn {
+  width: 100%;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dock-session .select-btn:hover {
+  background: var(--hover);
+}
+
+.dock-list {
+  flex: 1;
+  min-height: 0;
+  padding: 8px;
+  overflow: auto;
+}
+
+.act-row {
+  display: grid;
+  grid-template-columns: 60px 28px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--r-md);
+  transition: background-color var(--t-fast) var(--ease);
+}
+
+button.act-row:hover {
+  background: var(--hover);
+}
+
+.act-row[data-active] {
+  background: var(--raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.act-time {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.act-glyph {
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+}
+
+.act-glyph[data-tone="running"] .tension {
+  color: var(--accent);
+}
+
+.act-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.act-title .method {
+  min-width: 0;
+  margin-right: 4px;
+}
+
+.act-detail {
+  grid-column: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.act-detail[data-tone="running"] {
+  color: var(--accent-text);
+}
+
+.act-detail[data-tone="warn"] {
+  color: var(--warn);
+}
+
+.act-detail[data-tone="bad"] {
+  color: var(--neg);
+}
+
+.shell[data-dock="bottom"] .act-row {
+  grid-template-columns: 72px 28px minmax(0, 360px) minmax(0, 1fr);
+  padding: 4px 8px;
+}
+
+.shell[data-dock="bottom"] .act-detail {
+  grid-column: 4;
+}
+
+/* ───────────── Rigging ───────────── */
+
+.shell[data-rig] :is(.region, .main) {
+  outline: 1px dashed var(--line-strong);
+  outline-offset: -4px;
+}
+
+.region-tag,
+.zone-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-float);
+}
+
+.region-tag {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+  animation: fade var(--t-mid) var(--ease);
+}
+
+.shell[data-nav="top"] .nav .region-tag {
+  left: 50%;
+}
+
+.zones {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  cursor: grabbing;
+  animation: fade var(--t-fast) var(--ease);
+}
+
+.zone {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  outline: 1px dashed var(--text-3);
+  outline-offset: -8px;
+  transition: background-color var(--t-fast) var(--ease);
+}
+
+/* Only the edge under the pointer lights up. */
+.zone[data-over] {
+  background: var(--accent-soft);
+  outline-color: var(--accent-text);
+}
+
+.zone-label {
+  padding: 4px 12px;
+  font-size: 13px;
+  background: var(--card);
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.zone[data-current] .zone-label::after {
+  content: " · now";
+  color: var(--text-3);
+}
+
+.zones[data-drag="nav"] .zone[data-zone="left"] {
+  inset: 0 auto 0 0;
+  width: 22%;
+}
+
+.zones[data-drag="nav"] .zone[data-zone="right"] {
+  inset: 0 0 0 auto;
+  width: 22%;
+}
+
+.zones[data-drag="nav"] .zone[data-zone="top"] {
+  inset: 0 22% auto 22%;
+  height: 24%;
+}
+
+.zones[data-drag="dock"] .zone[data-zone="right"] {
+  inset: 0 0 0 auto;
+  width: 28%;
+}
+
+.zones[data-drag="dock"] .zone[data-zone="bottom"] {
+  inset: auto 28% 0 0;
+  height: 32%;
+}
+
+.zone-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.rig-bar {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 24px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 16px;
+  translate: -50% 0;
+  background: var(--card);
+  border-radius: var(--r-xl);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    var(--shadow-float);
+  animation: rise var(--t-slow) var(--ease);
+}
+
+.rig-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rig-label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-3);
+}
+
+.rig-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rig-intro {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  align-self: center;
+}
+
+.rig-title {
+  font-weight: 500;
+}
+
+.rig-hint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-3);
+  max-width: 22ch;
+}
+
+.rig-end {
+  flex-direction: row;
+  align-items: center;
+  margin-left: auto;
+}
+
+.rig-save {
+  display: flex;
+  gap: 8px;
+}
+
+.rig-save .input {
+  width: 144px;
+}
+
+.rig-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.rig-inline[data-disabled] {
+  opacity: 0.4;
+}
+
+.rig-mini {
+  display: grid;
+  gap: 2px;
+  width: 76px;
+  height: 52px;
+  flex: none;
+}
+
+.rig-mini span {
+  border-radius: 2px;
+  background: var(--line-strong);
+  transition: background-color var(--t-mid) var(--ease);
+}
+
+.rig-mini span[data-part="nav"] {
+  background: var(--accent);
+}
+
+.rig-mini span[data-part="dock"] {
+  background: var(--text-3);
+}
+
+.rig-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  animation: fade var(--t-mid) var(--ease);
+}
+
+.rig-strip .rig-label {
+  margin-right: 4px;
+}
+
+.rig-strip .rig-inline {
+  margin-left: auto;
+}
+
+/* ───────────── Palette ───────────── */
+
+.palette-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  padding-top: 14vh;
+  background: rgb(0 0 0 / 0.45);
+  animation: fade var(--t-fast) var(--ease);
+}
+
+.palette {
+  width: min(640px, calc(100vw - 32px));
+  overflow: hidden;
+  background: var(--card);
+  border-radius: var(--r-xl);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    var(--shadow-float);
+  animation: pop var(--t-mid) var(--ease);
+}
+
+.palette-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 16px;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.palette-input input {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--text);
+  background: none;
+  border: 0;
+  outline: 0;
+}
+
+.palette-list {
+  max-height: 408px;
+  padding: 4px 8px 8px;
+  overflow: auto;
+}
+
+.palette-none {
+  padding: 24px 8px;
+  color: var(--text-3);
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: var(--r-md);
+  white-space: nowrap;
+}
+
+.palette-item[data-cursor="true"] {
+  background: var(--raised);
+}
+
+.palette-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palette-hint {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.palette-hint + .palette-enter {
+  margin-left: 0;
+}
+
+.palette-enter {
+  flex: none;
+  margin-left: auto;
+  color: var(--text-3);
+  opacity: 0;
+}
+
+.palette-item[data-cursor="true"] .palette-enter {
+  opacity: 1;
+}
+
+/* ───────────── Boot ───────────── */
+
+.boot {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  height: 100dvh;
+}
+
+.boot-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boot-brand .brand-word {
+  font-size: 28px;
+}
+
+.boot-state,
+.boot-hint {
+  color: var(--text-3);
+}
+
+/* The rig bar reads in two rows: what this is and how to leave, then the controls. */
+.rig-bar > .rig-group {
+  order: 3;
+}
+
+.rig-bar > .rig-intro,
+.rig-bar > .rig-intro + .rig-group {
+  order: 0;
+}
+
+.rig-bar > .rig-end {
+  order: 1;
+}
+
+.rig-bar::after {
+  content: "";
+  order: 2;
+  flex-basis: 100%;
+}
+
+.shell[data-rig] .view {
+  padding-bottom: 264px;
+}
+
+/* While a region is being dragged the bar steps aside, so the edges can be read. */
+.rig-bar {
+  transition: opacity var(--t-fast) var(--ease);
+}
+
+.shell:has(.zones) .rig-bar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A bottom dock sits under the rig bar, so its tag rides the dock's top edge. */
+.shell[data-dock="bottom"] .dock .region-tag {
+  top: 8px;
+  transform: translate(-50%, 0);
+}
