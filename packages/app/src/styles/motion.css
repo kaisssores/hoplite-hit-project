@@ -1,0 +1,283 @@
+/*
+ * Motion. One easing curve everywhere, transform and opacity only.
+ * Structural changes run as view transitions; state/motion.ts tags <html>
+ * with the kind and the rules below decide what keeps its identity.
+ */
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes char-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* The one entrance, on first load only: content rises in reading order. */
+html[data-first] .enter {
+  animation: rise var(--t-slow) var(--ease) both;
+}
+
+html[data-first] .enter:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+html[data-first] .enter:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+html[data-first] .enter:nth-child(n + 4) {
+  animation-delay: 150ms;
+}
+
+/* Things that land because something happened: a new activity row, a response, a tab's content. */
+.act[data-fresh],
+.res-status,
+.advice,
+.pane-body > *,
+.figures-row {
+  animation: rise 320ms var(--ease) both;
+}
+
+/* ───────────── View transitions ───────────── */
+
+::view-transition-group(*) {
+  animation-duration: var(--t-slow);
+  animation-timing-function: var(--ease);
+}
+
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: var(--t-mid);
+  animation-timing-function: var(--ease);
+}
+
+/* Rail, dock and overlays are their own layers in every transition, so page content moving underneath never paints over them. */
+html[data-vt]:not([data-vt="theme"]) .region-nav {
+  view-transition-name: nav;
+}
+
+html[data-vt]:not([data-vt="theme"]) .region-dock {
+  view-transition-name: dock;
+}
+
+html[data-vt]:not([data-vt="theme"]) .rig-bar {
+  view-transition-name: rig-bar;
+}
+
+html[data-vt]:not([data-vt="theme"]) .sheet-layer {
+  view-transition-name: sheet;
+}
+
+/* flip: rows and modules keep their identity and glide to where they now belong. */
+html[data-vt="flip"] [data-flip] {
+  view-transition-name: var(--vt);
+}
+
+html[data-vt="flip"]::view-transition-group(*) {
+  animation-duration: 320ms;
+}
+
+html[data-vt="flip"]::view-transition-old(*),
+html[data-vt="flip"]::view-transition-new(*) {
+  height: 100%;
+  width: 100%;
+  object-fit: none;
+  object-position: top left;
+  overflow: clip;
+}
+
+html[data-vt="flip"]::view-transition-old(root),
+html[data-vt="flip"]::view-transition-new(root) {
+  object-fit: fill;
+}
+
+/* shell: the three regions morph to the new arrangement. */
+html[data-vt="shell"] .main {
+  view-transition-name: main;
+}
+
+html[data-vt="shell"]::view-transition-group(*) {
+  animation-duration: 440ms;
+}
+
+html[data-vt="shell"]::view-transition-old(*),
+html[data-vt="shell"]::view-transition-new(*) {
+  height: 100%;
+  width: 100%;
+  object-fit: none;
+  object-position: top left;
+  overflow: clip;
+  animation-duration: 240ms;
+}
+
+/* route: the page travels in the direction of navigation; an API's name travels with it. */
+html[data-vt="route"] .main {
+  view-transition-name: page;
+}
+
+html[data-vt="route"] [data-morph="name"] {
+  view-transition-name: api-name;
+}
+
+html[data-vt="route"]::view-transition-group(page) {
+  overflow: clip;
+}
+
+html[data-vt="route"]::view-transition-old(page) {
+  animation: vt-out 140ms var(--ease) both;
+}
+
+html[data-vt="route"]::view-transition-new(page) {
+  animation: vt-in-up 320ms var(--ease) both;
+}
+
+html[data-vt="route"][data-vt-dir="forward"]::view-transition-old(page) {
+  animation: vt-out-left 220ms var(--ease) both;
+}
+
+html[data-vt="route"][data-vt-dir="forward"]::view-transition-new(page) {
+  animation: vt-in-right var(--t-slow) var(--ease) both;
+}
+
+html[data-vt="route"][data-vt-dir="back"]::view-transition-old(page) {
+  animation: vt-out-right 220ms var(--ease) both;
+}
+
+html[data-vt="route"][data-vt-dir="back"]::view-transition-new(page) {
+  animation: vt-in-left var(--t-slow) var(--ease) both;
+}
+
+html[data-vt="route"]::view-transition-group(api-name) {
+  animation-duration: 440ms;
+}
+
+/* Keep the letterforms' proportions while the name scales between row and title. */
+html[data-vt="route"]::view-transition-old(api-name),
+html[data-vt="route"]::view-transition-new(api-name) {
+  height: 100%;
+  width: auto;
+  animation-duration: 280ms;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes vt-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+@keyframes vt-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(56px);
+  }
+}
+
+@keyframes vt-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+@keyframes vt-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-56px);
+  }
+}
+
+/* theme: the new theme spreads from the swatch that was picked. */
+html[data-vt="theme"]::view-transition-old(root) {
+  animation: none;
+  z-index: 0;
+}
+
+html[data-vt="theme"]::view-transition-new(root) {
+  z-index: 1;
+  animation: vt-reveal 560ms var(--ease) both;
+}
+
+@keyframes vt-reveal {
+  from {
+    clip-path: circle(0 at var(--vt-x) var(--vt-y));
+  }
+  to {
+    clip-path: circle(150vmax at var(--vt-x) var(--vt-y));
+  }
+}
+
+/* ───────────── Reduced motion ───────────── */
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 1ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 1ms !important;
+  transition-delay: 0ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion="system"] *,
+  html[data-motion="system"] *::before,
+  html[data-motion="system"] *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
