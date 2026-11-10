@@ -26,7 +26,7 @@
 
 @keyframes sheet-in {
   from {
-    transform: translateX(100%);
+    transform: translateX(calc(100% + 24px));
   }
 }
 
@@ -52,20 +52,20 @@
   }
 }
 
-/* The one entrance, on first load only: content rises in reading order. */
-html[data-first] .enter {
+/* The one entrance, when the product first appears: content rises in reading order. */
+html[data-entering] .enter {
   animation: rise var(--t-slow) var(--ease) both;
 }
 
-html[data-first] .enter:nth-child(2) {
+html[data-entering] .enter:nth-child(2) {
   animation-delay: 50ms;
 }
 
-html[data-first] .enter:nth-child(3) {
+html[data-entering] .enter:nth-child(3) {
   animation-delay: 100ms;
 }
 
-html[data-first] .enter:nth-child(n + 4) {
+html[data-entering] .enter:nth-child(n + 4) {
   animation-delay: 150ms;
 }
 
@@ -92,19 +92,19 @@ html[data-first] .enter:nth-child(n + 4) {
 }
 
 /* Rail, dock and overlays are their own layers in every transition, so page content moving underneath never paints over them. */
-html[data-vt]:not([data-vt="theme"]) .region-nav {
+html[data-vt]:not([data-vt="theme"], [data-vt="stage"]) .region-nav {
   view-transition-name: nav;
 }
 
-html[data-vt]:not([data-vt="theme"]) .region-dock {
+html[data-vt]:not([data-vt="theme"], [data-vt="stage"]) .region-dock {
   view-transition-name: dock;
 }
 
-html[data-vt]:not([data-vt="theme"]) .rig-bar {
+html[data-vt]:not([data-vt="theme"], [data-vt="stage"]) .rig-bar {
   view-transition-name: rig-bar;
 }
 
-html[data-vt]:not([data-vt="theme"]) .sheet-layer {
+html[data-vt]:not([data-vt="theme"], [data-vt="stage"]) .sheet-layer {
   view-transition-name: sheet;
 }
 
@@ -238,6 +238,70 @@ html[data-vt="route"]::view-transition-new(api-name) {
     opacity: 0;
     transform: translateX(-56px);
   }
+}
+
+
+/* stage: intro, registration and the product hand over. The mark flies to its next home while the old scene lifts away. */
+html[data-vt="stage"] .brand-mark {
+  view-transition-name: brand-mark;
+}
+
+html[data-vt="stage"]::view-transition-group(brand-mark) {
+  animation-duration: var(--t-scene);
+}
+
+html[data-vt="stage"]::view-transition-old(brand-mark),
+html[data-vt="stage"]::view-transition-new(brand-mark) {
+  height: 100%;
+  animation-duration: 320ms;
+}
+
+html[data-vt="stage"]::view-transition-old(root) {
+  z-index: 1;
+  animation: vt-lift 360ms var(--ease) both;
+}
+
+html[data-vt="stage"]::view-transition-new(root) {
+  animation: none;
+}
+
+@keyframes vt-lift {
+  to {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+/* The product's first appearance: rail, page and dock arrive from their own edges, in reading order. */
+html[data-entering] .region-nav {
+  animation: from-left 480ms var(--ease) 120ms both;
+}
+
+html[data-entering] .main .page {
+  animation: rise 520ms var(--ease) 200ms both;
+}
+
+html[data-entering] .region-dock {
+  animation: from-right 480ms var(--ease) 280ms both;
+}
+
+@keyframes from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+@keyframes from-right {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+/* Registration rises into the scene once the intro hands over. */
+.scene[data-stage="register"] .register {
+  animation: rise 480ms var(--ease) 120ms both;
 }
 
 /* theme: the new theme spreads from the swatch that was picked. */

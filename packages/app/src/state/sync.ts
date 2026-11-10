@@ -1,6 +1,8 @@
 import {
   createTether,
   type Api,
+  type Account,
+  type AccountInput,
   type ApiInput,
   type Endpoint,
   type Exchange,
@@ -17,7 +19,7 @@ import {
 import { applyTheme, resolveTheme } from "../theme/themes";
 import { buildRequest, draftFor, endpointOf } from "./draft";
 import { transition, type TransitionKind } from "./motion";
-import { parseRoute, routePath, store, type Draft, type Route } from "./store";
+import { parseRoute, routePath, store, type Draft, type Route, type Stage } from "./store";
 
 /**
  * The sync layer. It is the only module that talks to the server: it loads the
@@ -28,6 +30,7 @@ export const tether = createTether({ session: () => store.get().sessionId });
 
 const SESSION_KEY = "tether.session";
 const DRAFT_KEY = "tether.draft";
+export const THEME_CACHE = "tether.theme";
 
 /** Activity that arrived over the stream in this window, as opposed to history that was loaded. */
 export const freshActivity = new Set<string>();
@@ -46,7 +49,7 @@ export function connect() {
 }
 
 async function load() {
-  const [server, apis, health, incidents, keys, sessions, prefs] = await Promise.all([
+  const [server, apis, health, incidents, keys, sessions, prefs, account] = await Promise.all([
     tether.server.info(),
     tether.api.list(),
     tether.health.list(),
@@ -54,6 +57,7 @@ async function load() {
     tether.key.list(),
     tether.session.list(),
     tether.preferences.get(),
+    tether.account.get(),
   ]);
 
   let sessionId = store.get().sessionId ?? localStorage.getItem(SESSION_KEY);
@@ -71,6 +75,7 @@ async function load() {
 
   applyPrefs(prefs);
   store.set({
+    account,
     phase: "ready",
     server,
     apis,
@@ -83,8 +88,6 @@ async function load() {
     activity,
   });
   if (!store.get().draft) restoreDraft();
-  // The first-load entrance has played by now. Later renders of the same views stay still.
-  setTimeout(() => delete document.documentElement.dataset.first, 1200);
 }
 
 function onEvent(event: ServerEvent) {
@@ -119,6 +122,9 @@ function onEvent(event: ServerEvent) {
         freshActivity.add(event.properties.id);
         store.set({ activity: [...state.activity, event.properties] });
       }
+      break;
+    case "account.updated":
+      onAccount(event.properties);
       break;
     case "preferences.updated":
       // Another client changed them. Our own writes are applied optimistically and their echo is skipped.
@@ -157,9 +163,16 @@ function putExchange(exchange: Exchange) {
 
 let pendingWrites = 0;
 
-function applyPrefs(prefs: Preferences) {
+/**
+ * Pass an updater when the change runs inside a view transition: the callback is
+ * applied a frame later, and a snapshot taken at call time would undo any change
+ * made in between.
+ */
+function applyPrefs(update: Preferences | ((current: Preferences) => Preferences)) {
+  const prefs = typeof update === "function" ? update(store.get().prefs) : update;
   const root = document.documentElement;
   applyTheme(resolveTheme(prefs.theme));
+  localStorage.setItem(THEME_CACHE, prefs.theme);
   root.dataset.motion = prefs.motion;
   root.dataset.density = prefs.layout.density;
   store.set({ prefs });
@@ -177,8 +190,7 @@ function writePrefs(patch: PreferencesPatch) {
 
 /** Change the layout. The change shows at once and is saved on the server, which tells every other client. */
 export function setLayout(patch: Partial<Layout>, kind: TransitionKind | null = "shell") {
-  const prefs = store.get().prefs;
-  const next = { ...prefs, layout: { ...prefs.layout, ...patch } };
+  const next = (prefs: Preferences) => ({ ...prefs, layout: { ...prefs.layout, ...patch } });
   if (kind) void transition(kind, () => applyPrefs(next));
   else applyPrefs(next);
   writePrefs({ layout: patch });
@@ -186,8 +198,7 @@ export function setLayout(patch: Partial<Layout>, kind: TransitionKind | null = 
 
 /** Show a layout change without saving it, while a splitter or a module is being dragged. */
 export function previewLayout(patch: Partial<Layout>, kind: TransitionKind | null = null): Promise<void> {
-  const prefs = store.get().prefs;
-  const next = { ...prefs, layout: { ...prefs.layout, ...patch } };
+  const next = (prefs: Preferences) => ({ ...prefs, layout: { ...prefs.layout, ...patch } });
   if (kind) return transition(kind, () => applyPrefs(next));
   applyPrefs(next);
   return Promise.resolve();
@@ -201,7 +212,7 @@ export function commitLayout() {
 export function setTheme(theme: ThemeId | "system", origin: { x: number; y: number }) {
   const prefs = store.get().prefs;
   if (prefs.theme === theme) return;
-  void transition("theme", () => applyPrefs({ ...prefs, theme }), { origin });
+  void transition("theme", () => applyPrefs((current) => ({ ...current, theme })), { origin });
   writePrefs({ theme });
 }
 
@@ -220,7 +231,7 @@ export function saveLayout(name: string) {
 export function removeSavedLayout(id: string) {
   const prefs = store.get().prefs;
   const saved = prefs.saved.filter((entry) => entry.id !== id);
-  void transition("flip", () => applyPrefs({ ...prefs, saved }));
+  void transition("flip", () => applyPrefs((current) => ({ ...current, saved: current.saved.filter((entry) => entry.id !== id) })));
   writePrefs({ saved });
 }
 
@@ -239,6 +250,7 @@ function direction(from: Route, to: Route): "forward" | "back" | "lateral" {
 export function go(route: Route, options: { push?: boolean } = {}) {
   const from = store.get().route;
   const fromPath = routePath(from);
+  if (route.name === "api") remember({ type: "api", apiId: route.id });
   const toPath = routePath(route);
   if (fromPath === toPath) return;
   const main = document.getElementById("main");
@@ -251,7 +263,7 @@ export function go(route: Route, options: { push?: boolean } = {}) {
   void transition(
     "route",
     () => {
-      store.set({ route, palette: false });
+      store.set({ route, palette: false, shortcuts: false });
       const target = document.getElementById("main");
       if (target) target.scrollTop = dir === "back" ? (scrollMemory.get(toPath) ?? 0) : 0;
     },
@@ -317,6 +329,7 @@ export function setDraft(patch: Partial<Draft>) {
 export function compose(api: Api, endpoint: Endpoint | null) {
   const { keys, draft } = store.get();
   const next = draftFor(api, endpoint, keys, draft);
+  if (endpoint) remember({ type: "endpoint", apiId: api.id, endpointId: endpoint.id });
   store.set({ draft: next, activeExchangeId: null });
   localStorage.setItem(DRAFT_KEY, JSON.stringify(next));
 }
@@ -401,4 +414,60 @@ export async function rotateKey(id: string): Promise<KeySecret> {
 export async function revokeKey(id: string) {
   const key = await tether.key.revoke(id);
   store.set({ keys: upsert(store.get().keys, key) });
+}
+
+/* ───────────── Account and stage ───────────── */
+
+/** Moves between intro, registration and the product. The logo travels between them. */
+export function setStage(stage: Stage) {
+  if (store.get().stage === stage) return;
+  const root = document.documentElement;
+  if (stage === "app") root.dataset.entering = "";
+  void transition("stage", () => store.set({ stage, rig: false, palette: false, shortcuts: false, sheet: null })).then(() => {
+    // The shell's entrance plays once, inside the transition. Later renders stay still.
+    setTimeout(() => delete root.dataset.entering, 700);
+  });
+}
+
+function onAccount(account: Account | null) {
+  store.set({ account });
+  const { stage } = store.get();
+  // Another window registered or signed out.
+  if (!account && stage === "app") setStage("register");
+  if (account && stage === "register") setStage("app");
+}
+
+export async function saveAccount(input: AccountInput): Promise<Account> {
+  const account = await tether.account.save(input);
+  store.set({ account });
+  return account;
+}
+
+export async function signOut() {
+  await tether.account.signOut();
+  store.set({ account: null });
+  setStage("register");
+}
+
+/* ───────────── Recents ───────────── */
+
+const RECENT_KEY = "tether.recent";
+const RECENT_MAX = 6;
+
+/** What the palette offers before anything is typed: APIs opened and endpoints composed, newest first. */
+export type Recent = { type: "api"; apiId: string } | { type: "endpoint"; apiId: string; endpointId: string };
+
+export function recents(): Recent[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]") as Recent[];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+function remember(entry: Recent) {
+  const same = (other: Recent) => JSON.stringify(other) === JSON.stringify(entry);
+  const next = [entry, ...recents().filter((other) => !same(other))].slice(0, RECENT_MAX);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(next));
 }

@@ -26,7 +26,7 @@ Tether borrows its architecture from [opencode](https://github.com/anomalyco/ope
 
 ## The pieces
 
-**Contract** (`packages/contract`). One file, no runtime dependencies. Catalog, health, keys, sessions, exchanges, usage, preferences (theme and layout), the `ServerEvent` union and `ROUTES`. Default and preset layouts live here too, so the server can validate and seed what the client renders.
+**Contract** (`packages/contract`). One file, no runtime dependencies. Catalog, health, keys, sessions, exchanges, usage, the account, preferences (theme and layout), the `ServerEvent` union and `ROUTES`. Default and preset layouts live here too, so the server can validate and seed what the client renders.
 
 **Server** (`packages/server`). Hono on Node. `createApp(runtime)` returns the app without opening a socket, which is how the tests and the loopback adapter call it. The store keeps state in memory and writes it atomically, debounced. Secrets are hashed; a key's secret is returned once, on create and on rotate. A health simulation produces a day of history per API and ticks live samples onto the stream.
 
@@ -39,14 +39,14 @@ Tether borrows its architecture from [opencode](https://github.com/anomalyco/ope
 
 Replacing the simulation with real upstreams means writing adapters. Nothing above them changes.
 
-**SDK** (`packages/sdk`). `createTether({ baseUrl, fetch, session })` returns namespaced calls (`api`, `key`, `session`, `usage`, `preferences`, `health`, `server`) and `event.subscribe`, which reconnects when the stream drops. It sends the open session's id with each call so the server can file what happened under it.
+**SDK** (`packages/sdk`). `createTether({ baseUrl, fetch, session })` returns namespaced calls (`api`, `key`, `session`, `usage`, `preferences`, `account`, `health`, `server`) and `event.subscribe`, which reconnects when the stream drops. The server sends a heartbeat every 15 s; if nothing arrives for 35 s the SDK treats the stream as dead and reopens it, because a proxy can hold a dead `EventSource` open. It sends the open session's id with each call so the server can file what happened under it.
 
 **Client** (`packages/app`).
 
 - `state/store.ts` is the mirror of server state plus what belongs to one window: route, open sheet, the request draft.
 - `state/sync.ts` loads on first contact and after every reconnect, applies events, and exposes actions. Layout and theme changes show at once and are written to the server, which tells every other client.
 - `state/motion.ts` runs every structural change as a named transition.
-- `shell/` is the rail, the dock, the palette and the rigging layer. `views/` are the screens. `theme/themes.ts` is the token source.
+- `shell/` is the rail, the dock, the palette, onboarding, the account menu, shortcuts and the rigging layer. `views/` are the screens, including Settings. `theme/themes.ts` is the token source; [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) documents it.
 
 ## Life of a request
 

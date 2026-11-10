@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import {
   DEFAULT_PREFERENCES,
+  type Account,
   type Activity,
   type Api,
   type ApiHealth,
@@ -22,7 +23,12 @@ export type Route =
   | { name: "keys" }
   | { name: "usage" }
   | { name: "sessions" }
-  | { name: "workbench" };
+  | { name: "settings"; section?: SettingsSection };
+
+export type SettingsSection = "profile" | "appearance" | "layout" | "shortcuts" | "server";
+
+/** Where this window is in its life: the logo while the server is reached, registration, then the product. */
+export type Stage = "intro" | "register" | "app";
 
 export type Sheet = null | { type: "key"; apiId?: string } | { type: "register" };
 
@@ -65,6 +71,8 @@ export interface State {
   exchanges: Exchange[];
   activity: Activity[];
   prefs: Preferences;
+  account: Account | null;
+  stage: Stage;
 
   route: Route;
   /** The API whose name travels between its catalog row and its page. */
@@ -73,6 +81,7 @@ export interface State {
   /** The region being dragged to a new edge while rigging. */
   drag: "nav" | "dock" | null;
   palette: boolean;
+  shortcuts: boolean;
   sheet: Sheet;
   draft: Draft | null;
   activeExchangeId: string | null;
@@ -105,7 +114,8 @@ export function parseRoute(pathname: string): Route {
   if (parts[0] === "keys") return { name: "keys" };
   if (parts[0] === "usage") return { name: "usage" };
   if (parts[0] === "sessions") return { name: "sessions" };
-  if (parts[0] === "workbench") return { name: "workbench" };
+  // Workbench was the old name of settings.
+  if (parts[0] === "settings" || parts[0] === "workbench") return { name: "settings" };
   return { name: "catalog" };
 }
 
@@ -130,11 +140,14 @@ export const store = createStore<State>({
   exchanges: [],
   activity: [],
   prefs: DEFAULT_PREFERENCES,
+  account: null,
+  stage: "intro",
   route: initialRoute,
   morph: initialRoute.name === "api" ? initialRoute.id : null,
   rig: false,
   drag: null,
   palette: false,
+  shortcuts: false,
   sheet: null,
   draft: null,
   activeExchangeId: null,

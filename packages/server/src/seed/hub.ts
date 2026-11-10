@@ -35,8 +35,10 @@ const EXAMPLES: Record<string, { body?: unknown; status?: number; response: unkn
   "GET /v1/session/{id}/exchange": { response: [{ id: "exc_2k8d1f0a", state: "done", request: { method: "POST", path: "/v1/charges" }, response: { status: 201 } }] },
   "GET /v1/session/{id}/activity": { response: [{ id: "act_7q1m4c2z", kind: "exchange", title: "POST /v1/charges", detail: "Payments" }] },
   "GET /v1/usage": { response: { range: "24h", totals: { requests: 214806, errors: 903, p50: 96, previousRequests: 201344 } } },
-  "GET /v1/preferences": { response: { theme: "night-watch", motion: "system", layout: { nav: "left", dock: "right" }, saved: [] } },
-  "PUT /v1/preferences": { body: { theme: "chart-room", layout: { dock: "bottom" } }, response: { theme: "chart-room", motion: "system", layout: { nav: "left", dock: "bottom" }, saved: [] } },
+  "GET /v1/preferences": { response: { theme: "haze", motion: "system", layout: { nav: "left", dock: "right" }, saved: [] } },
+  "PUT /v1/preferences": { body: { theme: "haze-night", layout: { dock: "bottom" } }, response: { theme: "haze-night", motion: "system", layout: { nav: "left", dock: "bottom" }, saved: [] } },
+  "GET /v1/account": { response: { name: "Mara Lindqvist", email: "mara@northwind.dev", team: "Payments platform", createdAt: 1794268800000 } },
+  "PUT /v1/account": { body: { name: "Mara Lindqvist", email: "mara@northwind.dev", team: "Payments platform" }, response: { name: "Mara Lindqvist", email: "mara@northwind.dev", team: "Payments platform", createdAt: 1794268800000 } },
 };
 
 const ID_PARAM: Param = path("id", "Id of the resource named in the path", "ses_charge01");

@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import {
   DEFAULT_LAYOUT,
   DEFAULT_PREFERENCES,
+  type Account,
   type Activity,
   type ActivityKind,
   type Api,
@@ -62,6 +63,7 @@ function seed(now: number): Persisted {
     activity,
     preferences: clone(DEFAULT_PREFERENCES),
     usage: {},
+    account: null,
   };
 }
 
@@ -89,6 +91,7 @@ export class Store {
   private exchanges = new Map<string, Exchange[]>();
   private activity = new Map<string, Activity[]>();
   private preferences: Preferences;
+  private account: Account | null;
   private usage: Record<string, UsageHour>;
   private timer: NodeJS.Timeout | null = null;
   private writing: Promise<void> = Promise.resolve();
@@ -111,6 +114,7 @@ export class Store {
     for (const entry of state.activity) this.pushActivity(entry);
     this.preferences = { ...clone(DEFAULT_PREFERENCES), ...state.preferences, layout: { ...clone(DEFAULT_LAYOUT), ...state.preferences.layout } };
     this.usage = state.usage;
+    this.account = state.account ?? null;
   }
 
   /* ───────── catalog ───────── */
@@ -246,6 +250,19 @@ export class Store {
     return clone(next);
   }
 
+  /* ───────── account ───────── */
+
+  getAccount(): Account | null {
+    return this.account ? clone(this.account) : null;
+  }
+
+  setAccount(next: Account | null): Account | null {
+    this.account = next;
+    this.bus.emit({ type: "account.updated", properties: next ? clone(next) : null });
+    this.save();
+    return next ? clone(next) : null;
+  }
+
   /* ───────── usage ───────── */
 
   recordUsage(apiId: string, keyId: string | null, failed: boolean): void {
@@ -309,6 +326,7 @@ export class Store {
       activity: [...this.activity.values()].flat(),
       preferences: this.preferences,
       usage: this.usage,
+      account: this.account,
     };
   }
 

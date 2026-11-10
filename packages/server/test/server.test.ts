@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { after, before, describe, it } from "node:test";
-import { DEFAULT_LAYOUT, HOPS, type Api, type Exchange, type Key, type KeySecret, type Preferences, type Session } from "@tether/contract";
+import { DEFAULT_LAYOUT, HOPS, type Account, type Api, type Exchange, type Key, type KeySecret, type Preferences, type Session } from "@tether/contract";
 import { harness } from "./helpers.ts";
 
 type Harness = Awaited<ReturnType<typeof harness>>;
@@ -131,6 +131,22 @@ describe("tether server", () => {
     assert.deepEqual(put.body.layout.catalog, DEFAULT_LAYOUT.catalog);
 
     assert.equal((await h.call("PUT", "/v1/preferences", { theme: "neon" })).status, 422);
+  });
+
+  it("registers, updates and forgets the account", async () => {
+    assert.equal((await h.call("GET", "/v1/account")).body, null);
+    assert.equal((await h.call("PUT", "/v1/account", { name: "Mara", email: "not-an-email" })).status, 422);
+
+    const created = await h.call<Account>("PUT", "/v1/account", { name: " Mara Lindqvist ", email: "mara@northwind.dev", team: "Payments" });
+    assert.equal(created.status, 200);
+    assert.equal(created.body.name, "Mara Lindqvist");
+
+    const updated = await h.call<Account>("PUT", "/v1/account", { name: "Mara L.", email: "mara@northwind.dev" });
+    assert.equal(updated.body.team, "");
+    assert.equal(updated.body.createdAt, created.body.createdAt);
+
+    assert.equal((await h.call("DELETE", "/v1/account")).status, 200);
+    assert.equal((await h.call("GET", "/v1/account")).body, null);
   });
 
   it("registers and removes an API, and keeps official ones", async () => {

@@ -1,4 +1,4 @@
-import type { Activity, Api, Exchange, Key, Preferences, Session } from "@tether/contract";
+import type { Account, Activity, Api, Exchange, Key, Preferences, Session } from "@tether/contract";
 
 /** A key as the server keeps it: the public record plus a hash of the secret. */
 export interface StoredKey {
@@ -26,5 +26,7 @@ export interface Persisted {
   exchanges: Exchange[];
   activity: Activity[];
   preferences: Preferences;
+  /** Absent in state files written before accounts existed. */
+  account?: Account | null;
   usage: Record<string, UsageHour>;
 }
