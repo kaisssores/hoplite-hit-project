@@ -1,0 +1,22 @@
+{
+  "name": "tether",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Tether — the official user API hub. Prototype: a local server that owns state, a typed SDK, and a connected web client.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:server": "npm run dev -w @tether/server",
+    "dev:app": "npm run dev -w @tether/app",
+    "build": "npm run build -w @tether/app",
+    "start": "npm run start -w @tether/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test -w @tether/server"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
